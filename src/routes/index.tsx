@@ -20,6 +20,30 @@ function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [storeName, setStoreName] = useState<string>("Kivora Point");
+
+  // ================= FETCH LOGO & STORE NAME FROM SETTINGS =================
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("settings")
+          .select("logo_url, store_name")
+          .eq("id", 1)
+          .single();
+
+        if (!error && data) {
+          if (data.logo_url) setLogoUrl(data.logo_url);
+          if (data.store_name) setStoreName(data.store_name);
+        }
+      } catch (err) {
+        console.error("❌ Error fetching settings:", err);
+      }
+    };
+
+    fetchSettings();
+  }, []);
 
   // ================= CHECK SESSION ON MOUNT =================
   useEffect(() => {
@@ -136,16 +160,36 @@ function LoginPage() {
 
       <div className="relative w-full max-w-md">
         <div className="mb-8 flex flex-col items-center text-center">
-          {/* ================= LOGO PNG ================= */}
+          {/* ================= LOGO DARI DATABASE ================= */}
           <div className="mb-4 flex h-20 w-20 items-center justify-center rounded-2xl gradient-bg shadow-neon p-2">
-            <img 
-              src="\src\logo.jpeg" 
-              alt="Kivora Point Logo" 
-              className="h-14 w-14 object-contain"
-            />
+            {logoUrl ? (
+              <img 
+                src={logoUrl} 
+                alt={`${storeName} Logo`} 
+                className="h-14 w-14 object-contain"
+                onError={(e) => {
+                  // Kalau gambar gagal load, pake fallback
+                  (e.target as HTMLImageElement).src = "";
+                  (e.target as HTMLImageElement).style.display = "none";
+                  // Tampilkan fallback text
+                  const parent = (e.target as HTMLImageElement).parentElement;
+                  if (parent) {
+                    const fallback = document.createElement("span");
+                    fallback.className = "text-2xl font-bold text-white";
+                    fallback.textContent = storeName.charAt(0).toUpperCase();
+                    parent.appendChild(fallback);
+                  }
+                }}
+              />
+            ) : (
+              // Fallback kalau ga ada logo di database
+              <span className="text-2xl font-bold text-white">
+                {storeName.charAt(0).toUpperCase()}
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight">
-            <span className="gradient-text">Kivora</span> Point
+            <span className="gradient-text">{storeName}</span>
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">Admin Control Center</p>
         </div>
@@ -199,7 +243,7 @@ function LoginPage() {
           </button>
 
           <p className="mt-6 text-center text-xs text-muted-foreground">
-            Restricted area · Kivora Point staff only
+            Restricted area · {storeName} staff only
           </p>
         </form>
       </div>
