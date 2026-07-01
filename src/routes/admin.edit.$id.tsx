@@ -1,5 +1,5 @@
 // ============================================
-// FILE: admin.edit.$id.tsx - DENGAN RANK DROPDOWN LENGKAP
+// FILE: admin.edit.$id.tsx - BACKGROUND SOLID
 // ============================================
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin/edit/$id")({
   component: EditPage,
 });
 
-// ================= RANK LENGKAP (DARI TERKECIL → TERBESAR) =================
+// ================= RANK LENGKAP =================
 const RANKS = [
   "Warrior",
   "Elite",
@@ -40,7 +40,6 @@ const RANKS = [
   "Mythic Immortal",
 ];
 
-// ================= RANK COLORS UNTUK PREVIEW =================
 const RANK_COLORS: Record<string, string> = {
   Warrior: "text-gray-400",
   Elite: "text-slate-300",
@@ -52,20 +51,6 @@ const RANK_COLORS: Record<string, string> = {
   "Mythic Honor": "text-purple-300",
   "Mythic Glory": "text-yellow-400",
   "Mythic Immortal": "text-amber-400",
-};
-
-// ================= RANK BADGE COLORS UNTUK PREVIEW =================
-const RANK_BADGE_COLORS: Record<string, string> = {
-  Warrior: "border-gray-500/30 bg-gray-500/10 text-gray-400",
-  Elite: "border-slate-400/30 bg-slate-400/10 text-slate-300",
-  Master: "border-cyan-400/30 bg-cyan-400/10 text-cyan-400",
-  Grandmaster: "border-green-400/30 bg-green-400/10 text-green-400",
-  Epic: "border-red-400/30 bg-red-400/10 text-red-400",
-  Legend: "border-orange-400/30 bg-orange-400/10 text-orange-400",
-  Mythic: "border-purple-400/30 bg-purple-400/10 text-purple-400",
-  "Mythic Honor": "border-purple-300/30 bg-purple-300/10 text-purple-300",
-  "Mythic Glory": "border-yellow-400/30 bg-yellow-400/10 text-yellow-400",
-  "Mythic Immortal": "border-amber-400/30 bg-amber-400/10 text-amber-400",
 };
 
 function EditPage() {
@@ -169,11 +154,6 @@ function EditPage() {
     setSaving(false);
   };
 
-  // ================= GET RANK BADGE CLASS =================
-  const getRankBadgeClass = (rank: string) => {
-    return RANK_BADGE_COLORS[rank] || "border-border bg-card/50 text-muted-foreground";
-  };
-
   // ================= LOADING =================
   if (loading) {
     return (
@@ -189,8 +169,8 @@ function EditPage() {
   return (
     <>
       <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
-        {/* ================= HEADER ================= */}
         <div className="max-w-7xl mx-auto">
+          {/* ================= HEADER ================= */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button
@@ -220,11 +200,11 @@ function EditPage() {
           </div>
 
           {/* ================= MAIN FORM ================= */}
-          <form onSubmit={handleUpdate} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* ================= LEFT COLUMN - FORM ================= */}
             <div className="lg:col-span-2 space-y-6">
-              {/* Section: Account Information */}
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <Shield className="h-5 w-5 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -233,13 +213,12 @@ function EditPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Account Name
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter account name"
                       value={form.name}
                       onChange={(e) =>
@@ -251,13 +230,12 @@ function EditPage() {
                     />
                   </div>
 
-                  {/* Code */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Account Code
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter account code"
                       value={form.code}
                       onChange={(e) =>
@@ -269,14 +247,13 @@ function EditPage() {
                     />
                   </div>
 
-                  {/* Price */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Price (IDR)
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter price"
                       value={form.price}
                       onChange={(e) =>
@@ -288,13 +265,12 @@ function EditPage() {
                     />
                   </div>
 
-                  {/* ================= RANK DROPDOWN ================= */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Rank
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       value={form.rank}
                       onChange={(e) =>
                         setForm({
@@ -311,13 +287,12 @@ function EditPage() {
                     </select>
                   </div>
 
-                  {/* Status */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Status
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       value={form.status}
                       onChange={(e) =>
                         setForm({
@@ -332,14 +307,13 @@ function EditPage() {
                     </select>
                   </div>
 
-                  {/* Hero Count */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Hero Count
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Number of heroes"
                       value={form.hero_count}
                       onChange={(e) =>
@@ -351,14 +325,13 @@ function EditPage() {
                     />
                   </div>
 
-                  {/* Skin Count */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Skin Count
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Number of skins"
                       value={form.skin_count}
                       onChange={(e) =>
@@ -372,8 +345,8 @@ function EditPage() {
                 </div>
               </div>
 
-              {/* Section: Description */}
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                   <FileText className="h-5 w-5 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -381,7 +354,7 @@ function EditPage() {
                   </h2>
                 </div>
                 <textarea
-                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition min-h-[120px] resize-y"
+                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition min-h-[120px] resize-y"
                   placeholder="Enter account description..."
                   value={form.description}
                   onChange={(e) =>
@@ -393,8 +366,8 @@ function EditPage() {
                 />
               </div>
 
-              {/* Section: Image URL */}
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                   <ImageIcon className="h-5 w-5 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -402,7 +375,7 @@ function EditPage() {
                   </h2>
                 </div>
                 <input
-                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                   placeholder="Enter image URL"
                   value={form.image}
                   onChange={(e) =>
@@ -418,7 +391,8 @@ function EditPage() {
             {/* ================= RIGHT COLUMN - PREVIEW ================= */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
-                <div className="glass-card rounded-2xl p-6">
+                {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+                <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                   <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                     <Eye className="h-5 w-5 text-primary" />
                     <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
@@ -426,7 +400,6 @@ function EditPage() {
                     </h2>
                   </div>
 
-                  {/* Image Preview */}
                   <div className="mb-4">
                     {form.image ? (
                       <img
@@ -439,25 +412,20 @@ function EditPage() {
                         }}
                       />
                     ) : (
-                      <div className="w-full aspect-video bg-card/30 border border-border rounded-xl flex items-center justify-center">
+                      <div className="w-full aspect-video bg-background/50 border border-border rounded-xl flex items-center justify-center">
                         <ImageIcon className="h-12 w-12 text-muted-foreground/30" />
                       </div>
                     )}
                   </div>
 
-                  {/* Info Preview */}
                   <div className="space-y-3">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Name</span>
-                      <span className="text-sm font-medium">
-                        {form.name || "-"}
-                      </span>
+                      <span className="text-sm font-medium">{form.name || "-"}</span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Code</span>
-                      <span className="text-sm font-medium">
-                        {form.code || "-"}
-                      </span>
+                      <span className="text-sm font-medium">{form.code || "-"}</span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Rank</span>
@@ -502,9 +470,8 @@ function EditPage() {
                   </div>
                 </div>
 
-                {/* Description Preview */}
                 {form.description && (
-                  <div className="mt-4 glass-card rounded-2xl p-4">
+                  <div className="mt-4 bg-card rounded-2xl p-4 border border-border shadow-soft">
                     <p className="text-xs text-muted-foreground mb-1">Description</p>
                     <p className="text-sm text-foreground line-clamp-3">
                       {form.description}
@@ -513,7 +480,7 @@ function EditPage() {
                 )}
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
 
@@ -534,7 +501,6 @@ function EditPage() {
             ...modal,
             open: false,
           });
-          // 🔥 Redirect ke halaman stock setelah sukses
           if (modal.type === "success") {
             navigate({
               to: "/admin/stock",

@@ -1,5 +1,5 @@
 // ============================================
-// FILE: admin.add.tsx - DENGAN RANK DROPDOWN LENGKAP
+// FILE: admin.add.tsx - BACKGROUND SOLID
 // ============================================
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/admin/add")({
   component: AddAccountPage,
 });
 
-// ================= RANK LENGKAP (DARI TERKECIL → TERBESAR) =================
+// ================= RANK LENGKAP =================
 const RANKS = [
   "Warrior",
   "Elite",
@@ -40,7 +40,6 @@ const RANKS = [
   "Mythic Immortal",
 ];
 
-// ================= RANK COLORS UNTUK PREVIEW =================
 const RANK_COLORS: Record<string, string> = {
   Warrior: "text-gray-400",
   Elite: "text-slate-300",
@@ -52,20 +51,6 @@ const RANK_COLORS: Record<string, string> = {
   "Mythic Honor": "text-purple-300",
   "Mythic Glory": "text-yellow-400",
   "Mythic Immortal": "text-amber-400",
-};
-
-// ================= RANK BADGE COLORS UNTUK PREVIEW =================
-const RANK_BADGE_COLORS: Record<string, string> = {
-  Warrior: "border-gray-500/30 bg-gray-500/10 text-gray-400",
-  Elite: "border-slate-400/30 bg-slate-400/10 text-slate-300",
-  Master: "border-cyan-400/30 bg-cyan-400/10 text-cyan-400",
-  Grandmaster: "border-green-400/30 bg-green-400/10 text-green-400",
-  Epic: "border-red-400/30 bg-red-400/10 text-red-400",
-  Legend: "border-orange-400/30 bg-orange-400/10 text-orange-400",
-  Mythic: "border-purple-400/30 bg-purple-400/10 text-purple-400",
-  "Mythic Honor": "border-purple-300/30 bg-purple-300/10 text-purple-300",
-  "Mythic Glory": "border-yellow-400/30 bg-yellow-400/10 text-yellow-400",
-  "Mythic Immortal": "border-amber-400/30 bg-amber-400/10 text-amber-400",
 };
 
 function AddAccountPage() {
@@ -185,18 +170,11 @@ function AddAccountPage() {
     setPreview("");
   };
 
-  // =============================
-  // GET RANK BADGE CLASS
-  // =============================
-  const getRankBadgeClass = (rank: string) => {
-    return RANK_BADGE_COLORS[rank] || "border-border bg-card/50 text-muted-foreground";
-  };
-
   return (
     <>
       <form onSubmit={handleSubmit} className="min-h-screen bg-background text-foreground p-4 md:p-8">
-        {/* ================= HEADER ================= */}
         <div className="max-w-7xl mx-auto">
+          {/* ================= HEADER ================= */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button
@@ -222,20 +200,20 @@ function AddAccountPage() {
           <div className="grid xl:grid-cols-2 gap-8">
             {/* ================= LEFT COLUMN ================= */}
             <div className="space-y-5">
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <h2 className="gradient-text font-bold flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <User size={18} />
                   ACCOUNT INFORMATION
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {/* Name - Full width */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Account Name
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter account name"
                       value={form.name}
                       onChange={(e) =>
@@ -247,13 +225,12 @@ function AddAccountPage() {
                     />
                   </div>
 
-                  {/* Code */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Account Code
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter account code"
                       value={form.code}
                       onChange={(e) =>
@@ -265,14 +242,13 @@ function AddAccountPage() {
                     />
                   </div>
 
-                  {/* Price */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Price (IDR)
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Enter price"
                       value={form.price}
                       onChange={(e) =>
@@ -284,13 +260,12 @@ function AddAccountPage() {
                     />
                   </div>
 
-                  {/* ================= RANK DROPDOWN ================= */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Rank
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       value={form.rank}
                       onChange={(e) =>
                         setForm({
@@ -307,14 +282,13 @@ function AddAccountPage() {
                     </select>
                   </div>
 
-                  {/* Hero Count */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Hero Count
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Number of heroes"
                       value={form.hero_count}
                       onChange={(e) =>
@@ -326,14 +300,13 @@ function AddAccountPage() {
                     />
                   </div>
 
-                  {/* Skin Count */}
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Skin Count
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       placeholder="Number of skins"
                       value={form.skin_count}
                       onChange={(e) =>
@@ -345,13 +318,12 @@ function AddAccountPage() {
                     />
                   </div>
 
-                  {/* Status - Full width */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Status
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
                       value={form.status}
                       onChange={(e) =>
                         setForm({
@@ -366,13 +338,12 @@ function AddAccountPage() {
                     </select>
                   </div>
 
-                  {/* Description - Full width */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Description
                     </label>
                     <textarea
-                      className="w-full h-32 rounded-xl border border-border bg-card/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition resize-y"
+                      className="w-full h-32 rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition resize-y"
                       placeholder="Enter account description..."
                       value={form.description}
                       onChange={(e) =>
@@ -389,13 +360,14 @@ function AddAccountPage() {
 
             {/* ================= RIGHT COLUMN ================= */}
             <div className="space-y-6">
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <h2 className="gradient-text font-bold flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <ImageIcon size={18} />
                   ACCOUNT IMAGE
                 </h2>
 
-                <div className="border border-border rounded-xl p-4 relative">
+                <div className="border border-border rounded-xl p-4 relative bg-background/20">
                   {preview ? (
                     <>
                       <img
@@ -406,13 +378,13 @@ function AddAccountPage() {
                       <button
                         type="button"
                         onClick={removeImage}
-                        className="absolute top-5 right-5 bg-red-600 p-2 rounded-full hover:bg-red-700 transition"
+                        className="absolute top-5 right-5 bg-destructive p-2 rounded-full hover:bg-destructive/80 transition"
                       >
                         <X size={18} />
                       </button>
                     </>
                   ) : (
-                    <div className="h-72 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center relative text-muted-foreground gap-4">
+                    <div className="h-72 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center relative text-muted-foreground gap-4 bg-background/10">
                       <Upload className="h-12 w-12 text-muted-foreground/30" />
                       <p className="text-sm">Click or drag to upload image</p>
                       <input
@@ -426,8 +398,8 @@ function AddAccountPage() {
                 </div>
               </div>
 
-              {/* ================= QUICK PREVIEW ================= */}
-              <div className="glass-card rounded-2xl p-6">
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <h3 className="gradient-text font-bold mb-4 pb-4 border-b border-border">
                   QUICK PREVIEW
                 </h3>
@@ -527,7 +499,6 @@ function AddAccountPage() {
             ...modal,
             open: false,
           });
-          // 🔥 Redirect ke halaman stock setelah sukses
           if (modal.type === "success") {
             navigate({
               to: "/admin/stock",
