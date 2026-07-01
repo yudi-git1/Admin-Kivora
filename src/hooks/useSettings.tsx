@@ -1,6 +1,7 @@
 // ============================================
-// FILE: hooks/useSettings.ts
+// FILE: hooks/useSettings.tsx - FIXED
 // ============================================
+
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 
@@ -17,13 +18,14 @@ interface Settings {
   logo_url: string | null;
   profile_name: string | null;
   profile_avatar: string | null;
+  store_currency?: string | null;
 }
 
 const defaultSettings: Settings = {
   id: 1,
   store_name: 'Kivora Point',
-  email: 'admin@kivorapoint.com',
-  whatsapp: '+62 812-3456-7890',
+  email: 'kivorapoint99@gmail.com',
+  whatsapp: '6285717677980',
   username: 'admin',
   flash_sale: true,
   show_out_of_stock: false,
@@ -32,13 +34,15 @@ const defaultSettings: Settings = {
   logo_url: null,
   profile_name: 'Admin',
   profile_avatar: null,
+  store_currency: 'IDR',
 };
 
 export function useSettings() {
-  const [settings, setSettings] = useState<Settings>(defaultSettings);
+  const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // ================= FETCH =================
   const fetchSettings = async () => {
     try {
       setLoading(true);
@@ -49,27 +53,28 @@ export function useSettings() {
         .single();
 
       if (error) {
-        console.error('Error fetching settings:', error);
-        // Jika data tidak ada, buat default
         if (error.code === 'PGRST116') {
           await createDefaultSettings();
           return;
         }
+        console.error('❌ Fetch error:', error);
         setError(error.message);
         return;
       }
 
       if (data) {
         setSettings(data);
+        updateLocalStorage(data);
       }
     } catch (err) {
-      console.error('Error:', err);
+      console.error('❌ Error:', err);
       setError('Failed to load settings');
     } finally {
       setLoading(false);
     }
   };
 
+  // ================= CREATE DEFAULT =================
   const createDefaultSettings = async () => {
     try {
       const { data, error } = await supabase
@@ -79,20 +84,32 @@ export function useSettings() {
         .single();
 
       if (error) {
-        console.error('Error creating default settings:', error);
+        console.error('❌ Error creating default:', error);
         return;
       }
 
       if (data) {
         setSettings(data);
+        updateLocalStorage(data);
       }
     } catch (err) {
-      console.error('Error creating default:', err);
+      console.error('❌ Error creating default:', err);
     }
   };
 
+  // ================= UPDATE LOCAL STORAGE =================
+  const updateLocalStorage = (data: Settings) => {
+    if (data.logo_url) localStorage.setItem('app_logo', data.logo_url);
+    if (data.store_name) localStorage.setItem('app_logo_text', data.store_name);
+    if (data.profile_name) localStorage.setItem('profile_name', data.profile_name);
+    if (data.profile_avatar) localStorage.setItem('profile_avatar', data.profile_avatar);
+  };
+
+  // ================= UPDATE SETTINGS =================
   const updateSettings = async (updates: Partial<Settings>) => {
     try {
+      console.log('🔍 Updating settings:', updates);
+
       const { data, error } = await supabase
         .from('settings')
         .update(updates)
@@ -101,37 +118,56 @@ export function useSettings() {
         .single();
 
       if (error) {
-        console.error('Error updating settings:', error);
+        console.error('❌ Supabase error:', error);
+        console.error('❌ Code:', error.code);
+        console.error('❌ Message:', error.message);
         return null;
       }
 
+      console.log('✅ Settings updated:', data);
+
       if (data) {
         setSettings(data);
-        // Update localStorage untuk sync
-        if (updates.logo_url !== undefined) {
-          localStorage.setItem('app_logo', updates.logo_url || '');
-        }
-        if (updates.store_name !== undefined) {
-          localStorage.setItem('app_logo_text', updates.store_name || 'Kivora Point');
-        }
-        if (updates.profile_name !== undefined) {
-          localStorage.setItem('profile_name', updates.profile_name || 'Admin');
-        }
-        if (updates.profile_avatar !== undefined) {
-          localStorage.setItem('profile_avatar', updates.profile_avatar || '');
-        }
+        updateLocalStorage(data);
         return data;
       }
       return null;
     } catch (err) {
-      console.error('Error updating:', err);
+      console.error('❌ Error updating settings:', err);
       return null;
     }
   };
 
-  // Upload logo ke storage
+  // ================= DELETE OLD IMAGE =================
+  const deleteOldImage = async (oldUrl: string | null) => {
+    if (!oldUrl) return true;
+
+    try {
+      const path = oldUrl.split('/settings-images/')[1];
+      if (!path) return true;
+
+      const { error } = await supabase.storage
+        .from('settings-images')
+        .remove([path]);
+
+      if (error) {
+        console.error('❌ Error deleting old image:', error);
+        return false;
+      }
+
+      console.log('✅ Old image deleted:', path);
+      return true;
+    } catch (err) {
+      console.error('❌ Error deleting old image:', err);
+      return false;
+    }
+  };
+
+  // ================= UPLOAD LOGO =================
   const uploadLogo = async (file: File): Promise<string | null> => {
     try {
+      const oldLogoUrl = settings?.logo_url || null;
+
       const fileExt = file.name.split('.').pop();
       const fileName = `logo-${Date.now()}.${fileExt}`;
       const filePath = `logos/${fileName}`;
@@ -141,24 +177,29 @@ export function useSettings() {
         .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        console.error('❌ Upload error:', uploadError);
         return null;
       }
 
-      const { data } = supabase.storage
-        .from('settings-images')
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from('settings-images').getPublicUrl(filePath);
+      const newUrl = data.publicUrl;
 
-      return data.publicUrl;
+      if (oldLogoUrl) {
+        await deleteOldImage(oldLogoUrl);
+      }
+
+      return newUrl;
     } catch (err) {
-      console.error('Error uploading:', err);
+      console.error('❌ Error uploading logo:', err);
       return null;
     }
   };
 
-  // Upload avatar profile
+  // ================= UPLOAD AVATAR =================
   const uploadAvatar = async (file: File): Promise<string | null> => {
     try {
+      const oldAvatarUrl = settings?.profile_avatar || null;
+
       const fileExt = file.name.split('.').pop();
       const fileName = `avatar-${Date.now()}.${fileExt}`;
       const filePath = `avatars/${fileName}`;
@@ -168,17 +209,20 @@ export function useSettings() {
         .upload(filePath, file);
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        console.error('❌ Upload error:', uploadError);
         return null;
       }
 
-      const { data } = supabase.storage
-        .from('settings-images')
-        .getPublicUrl(filePath);
+      const { data } = supabase.storage.from('settings-images').getPublicUrl(filePath);
+      const newUrl = data.publicUrl;
 
-      return data.publicUrl;
+      if (oldAvatarUrl) {
+        await deleteOldImage(oldAvatarUrl);
+      }
+
+      return newUrl;
     } catch (err) {
-      console.error('Error uploading:', err);
+      console.error('❌ Error uploading avatar:', err);
       return null;
     }
   };
@@ -195,5 +239,6 @@ export function useSettings() {
     uploadLogo,
     uploadAvatar,
     refetch: fetchSettings,
+    deleteOldImage,
   };
 }
