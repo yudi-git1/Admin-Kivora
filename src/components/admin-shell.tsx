@@ -1,7 +1,8 @@
 // ============================================
 // FILE: components/admin-shell.tsx - FULL SCRIPT
-// DENGAN NOTIFIKASI REALTIME
+// DENGAN NOTIFIKASI REALTIME + PP & NAMA DARI SETTINGS
 // ============================================
+
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useState, type ReactNode, useEffect, useRef } from "react";
 import {
@@ -89,7 +90,7 @@ export function AdminShell({
     }
   };
 
-  // Logo dan nama dari database
+  // ================= AMBIL DATA DARI SETTINGS =================
   const logoUrl = settings?.logo_url || "";
   const storeName = settings?.store_name || "Kivora Point";
   const profileName = settings?.profile_name || "Admin";
@@ -105,8 +106,6 @@ export function AdminShell({
             onLogout={handleLogoutClick}
             logoUrl={logoUrl}
             storeName={storeName}
-            profileName={profileName}
-            profileAvatar={profileAvatar}
           />
         </aside>
 
@@ -124,8 +123,6 @@ export function AdminShell({
                 onNavigate={() => setOpen(false)}
                 logoUrl={logoUrl}
                 storeName={storeName}
-                profileName={profileName}
-                profileAvatar={profileAvatar}
                 isMobile
               />
             </aside>
@@ -167,17 +164,22 @@ export function AdminShell({
               {/* 🔔 NOTIFICATION BELL - REALTIME */}
               <NotificationBell />
 
-              {/* Profile */}
+              {/* ================= PROFILE ================= */}
               <div className="relative" ref={profileRef}>
                 <button
                   onClick={() => setProfileOpen(!profileOpen)}
                   className="flex h-9 items-center gap-2 rounded-lg border border-border bg-card px-2.5 hover:bg-accent/10 transition"
                 >
+                  {/* Avatar - Dari Settings */}
                   {profileAvatar ? (
                     <img
                       src={profileAvatar}
                       alt="Avatar"
                       className="h-6 w-6 rounded-md object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = "";
+                        (e.target as HTMLImageElement).style.display = "none";
+                      }}
                     />
                   ) : (
                     <div className="grid h-6 w-6 place-items-center rounded-md gradient-bg text-[10px] font-bold text-white">
@@ -188,6 +190,8 @@ export function AdminShell({
                         .join("")}
                     </div>
                   )}
+                  
+                  {/* Nama - Dari Settings */}
                   <span className="text-xs font-medium hidden sm:block">{profileName}</span>
                   <ChevronDown className="h-3 w-3 text-muted-foreground" />
                 </button>
@@ -197,11 +201,16 @@ export function AdminShell({
                   <div className="absolute right-0 mt-2 w-56 rounded-xl border border-border bg-card shadow-xl z-50">
                     <div className="p-4 border-b border-border">
                       <div className="flex items-center gap-3">
+                        {/* Avatar besar di dropdown */}
                         {profileAvatar ? (
                           <img
                             src={profileAvatar}
                             alt="Avatar"
                             className="h-10 w-10 rounded-xl object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "";
+                              (e.target as HTMLImageElement).style.display = "none";
+                            }}
                           />
                         ) : (
                           <div className="grid h-10 w-10 place-items-center rounded-xl gradient-bg text-white font-bold">
@@ -276,8 +285,6 @@ function SidebarContent({
   onNavigate,
   logoUrl,
   storeName,
-  profileName,
-  profileAvatar,
   isMobile = false,
 }: {
   isActive: (to: string, end?: boolean) => boolean;
@@ -285,8 +292,6 @@ function SidebarContent({
   onNavigate?: () => void;
   logoUrl: string;
   storeName: string;
-  profileName: string;
-  profileAvatar: string;
   isMobile?: boolean;
 }) {
   return (
@@ -299,6 +304,10 @@ function SidebarContent({
               src={logoUrl}
               alt="Logo"
               className="h-10 w-10 rounded-xl object-cover border border-sidebar-border"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = "";
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
             />
           ) : (
             <div className="grid h-10 w-10 place-items-center rounded-xl gradient-bg shadow-neon">
