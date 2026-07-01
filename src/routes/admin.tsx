@@ -1,6 +1,8 @@
 // ============================================
-// FILE: app/routes/admin.tsx - FIX localStorage SSR
+// FILE: app/routes/admin.tsx - FULL SCRIPT
+// DENGAN SETTINGS YANG SUDAH DIPANGGIL
 // ============================================
+
 import { createFileRoute, Outlet, redirect, useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
@@ -19,6 +21,11 @@ import {
   Monitor,
   Camera,
   X,
+  Globe,
+  Phone,
+  Mail,
+  Shield,
+  Bell,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin")({
@@ -190,7 +197,7 @@ function AdminLayout() {
 }
 
 // ============================================
-// SETTINGS PAGE - (SAMA SEPERTI SEBELUMNYA)
+// SETTINGS PAGE - VERSI BAGUS
 // ============================================
 function SettingsPage() {
   const { settings, loading, updateSettings, uploadLogo, uploadAvatar, refetch } = useSettings();
@@ -200,7 +207,7 @@ function SettingsPage() {
   const [previewAvatar, setPreviewAvatar] = useState<string | null>(null);
   const [formData, setFormData] = useState<any>({});
 
-  // ================= ACTION MODAL STATE =================
+  // ================= MODAL STATE =================
   const [modal, setModal] = useState({
     open: false,
     type: "success" as "success" | "error" | "warning",
@@ -215,6 +222,7 @@ function SettingsPage() {
     }
   }, [settings]);
 
+  // ================= HANDLE INPUT =================
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData((prev: any) => ({
@@ -230,7 +238,7 @@ function SettingsPage() {
     }));
   };
 
-  // ================= HANDLE SAVE DENGAN ACTION MODAL =================
+  // ================= SAVE =================
   const handleSave = async () => {
     setModal({
       open: true,
@@ -301,6 +309,7 @@ function SettingsPage() {
     }
   };
 
+  // ================= UPLOAD HANDLERS =================
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -326,24 +335,32 @@ function SettingsPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-muted-foreground">Loading settings...</p>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading settings...</p>
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="w-full max-w-full p-6 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
+      <div className="w-full max-w-full space-y-6 p-4 md:p-6">
+        {/* ================= HEADER ================= */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-bold text-white">Settings</h1>
-            <p className="text-sm text-gray-400">Configure your Kivora Point admin workspace</p>
+            <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+              <Settings className="h-6 w-6 text-primary" />
+              Settings
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              Configure your Kivora Point admin workspace
+            </p>
           </div>
           <button 
             onClick={handleSave}
             disabled={saving}
-            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-semibold text-white hover:bg-blue-700 transition disabled:opacity-50"
+            className="inline-flex items-center gap-2 rounded-lg gradient-bg px-6 py-2.5 text-sm font-semibold text-white shadow-neon hover:opacity-90 transition disabled:opacity-50"
           >
             <Save className={`h-4 w-4 ${saving ? 'animate-spin' : ''}`} />
             {saving ? "Saving..." : "Save Changes"}
@@ -352,39 +369,40 @@ function SettingsPage() {
 
         <div className="grid gap-6 lg:grid-cols-2">
           {/* ================= STORE PROFILE ================= */}
-          <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+          <div className="glass-card rounded-2xl p-6 border border-border">
             <div className="flex items-center gap-3 mb-5">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-blue-600 text-white">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-primary/10 text-primary">
                 <Store className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-white">Store Profile</h2>
-                <p className="text-xs text-gray-400">Public marketplace identity</p>
+                <p className="text-xs text-muted-foreground">Public marketplace identity</p>
               </div>
             </div>
             
             <div className="space-y-4">
-              {/* Store Name */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Store Name</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Store Name</label>
                 <input 
                   name="store_name"
                   value={formData.store_name || ''}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
+                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
                   placeholder="Enter store name"
                 />
               </div>
 
-              {/* Logo Upload */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Store Logo</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Store Logo</label>
                 <div className="flex items-center gap-4">
                   <div className="relative group">
                     <img 
                       src={previewLogo || formData.logo_url || '/default-logo.png'} 
                       alt="Logo" 
-                      className="h-16 w-16 rounded-xl object-cover border border-gray-700 bg-gray-900/50"
+                      className="h-16 w-16 rounded-xl object-cover border border-border bg-card/50"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-logo.png';
+                      }}
                     />
                     <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 cursor-pointer transition">
                       <Camera className="h-5 w-5 text-white" />
@@ -405,74 +423,82 @@ function SettingsPage() {
                       <X className="h-4 w-4" />
                     </button>
                   )}
-                  <p className="text-xs text-gray-500">Click on logo to change</p>
+                  <p className="text-xs text-muted-foreground">Click to change</p>
                 </div>
               </div>
 
-              {/* Email */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Contact Email</label>
-                <input 
-                  name="email"
-                  value={formData.email || ''}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
-                  placeholder="Enter email address"
-                  type="email"
-                />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Contact Email</label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input 
+                    name="email"
+                    value={formData.email || ''}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-border bg-card/50 pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
+                    placeholder="Enter email address"
+                    type="email"
+                  />
+                </div>
               </div>
 
-              {/* WhatsApp */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">WhatsApp</label>
-                <input 
-                  name="whatsapp"
-                  value={formData.whatsapp || ''}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
-                  placeholder="Enter WhatsApp number"
-                />
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">WhatsApp Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <input 
+                    name="whatsapp"
+                    value={formData.whatsapp || ''}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-border bg-card/50 pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
+                    placeholder="Enter WhatsApp number"
+                  />
+                </div>
               </div>
 
-              {/* Currency */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Store Currency</label>
-                <select 
-                  name="currency"
-                  value={formData.currency || 'IDR'}
-                  onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30"
-                >
-                  <option value="IDR">Indonesian Rupiah (IDR)</option>
-                  <option value="USD">US Dollar (USD)</option>
-                  <option value="SGD">Singapore Dollar (SGD)</option>
-                </select>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Store Currency</label>
+                <div className="relative">
+                  <Globe className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <select 
+                    name="currency"
+                    value={formData.currency || 'IDR'}
+                    onChange={handleInputChange}
+                    className="w-full rounded-xl border border-border bg-card/50 pl-10 pr-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                  >
+                    <option value="IDR">Indonesian Rupiah (IDR)</option>
+                    <option value="USD">US Dollar (USD)</option>
+                    <option value="SGD">Singapore Dollar (SGD)</option>
+                  </select>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ================= PROFILE ================= */}
-          <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+          {/* ================= ADMIN PROFILE ================= */}
+          <div className="glass-card rounded-2xl p-6 border border-border">
             <div className="flex items-center gap-3 mb-5">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-600 text-white">
+              <div className="grid h-10 w-10 place-items-center rounded-xl bg-purple-500/10 text-purple-400">
                 <User className="h-5 w-5" />
               </div>
               <div>
                 <h2 className="text-base font-semibold text-white">Admin Profile</h2>
-                <p className="text-xs text-gray-400">Your personal information</p>
+                <p className="text-xs text-muted-foreground">Your personal information</p>
               </div>
             </div>
             
             <div className="space-y-4">
-              {/* Avatar Upload */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Profile Avatar</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Profile Avatar</label>
                 <div className="flex items-center gap-4">
                   <div className="relative group">
                     <img 
                       src={previewAvatar || formData.profile_avatar || '/default-avatar.png'} 
                       alt="Avatar" 
-                      className="h-16 w-16 rounded-full object-cover border border-gray-700 bg-gray-900/50"
+                      className="h-16 w-16 rounded-full object-cover border border-border bg-card/50"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/default-avatar.png';
+                      }}
                     />
                     <label className="absolute inset-0 flex items-center justify-center bg-black/60 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition">
                       <Camera className="h-5 w-5 text-white" />
@@ -493,53 +519,48 @@ function SettingsPage() {
                       <X className="h-4 w-4" />
                     </button>
                   )}
-                  <p className="text-xs text-gray-500">Click on avatar to change</p>
+                  <p className="text-xs text-muted-foreground">Click to change</p>
                 </div>
               </div>
 
-              {/* Username */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Username</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Username</label>
                 <input 
                   name="username"
                   value={formData.username || ''}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
+                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
                   placeholder="Enter username"
                 />
               </div>
 
-              {/* Profile Name */}
               <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Display Name</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1.5">Display Name</label>
                 <input 
                   name="profile_name"
                   value={formData.profile_name || ''}
                   onChange={handleInputChange}
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
+                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
                   placeholder="Enter display name"
                 />
               </div>
 
-              {/* Current Password */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">Current Password</label>
+              <div className="pt-4 border-t border-border">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-2 mb-3">
+                  <Shield className="h-3.5 w-3.5" />
+                  Security
+                </p>
                 <input 
                   type="password" 
                   name="current_password"
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
-                  placeholder="Enter current password"
+                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition mb-2" 
+                  placeholder="Current password"
                 />
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1.5">New Password</label>
                 <input 
                   type="password" 
                   name="new_password"
-                  className="w-full rounded-lg border border-gray-700 bg-gray-900/50 px-3 py-2.5 text-sm text-white outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30" 
-                  placeholder="Enter new password"
+                  className="w-full rounded-xl border border-border bg-card/50 px-4 py-2.5 text-sm text-white outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition" 
+                  placeholder="New password"
                 />
               </div>
             </div>
@@ -547,14 +568,14 @@ function SettingsPage() {
         </div>
 
         {/* ================= PREFERENCES ================= */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+        <div className="glass-card rounded-2xl p-6 border border-border">
           <div className="flex items-center gap-3 mb-5">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-green-600 text-white">
-              <Settings className="h-5 w-5" />
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-500/10 text-emerald-400">
+              <Bell className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">Marketplace Preferences</h2>
-              <p className="text-xs text-gray-400">Control how the store behaves</p>
+              <p className="text-xs text-muted-foreground">Control how the store behaves</p>
             </div>
           </div>
           
@@ -597,14 +618,14 @@ function SettingsPage() {
         </div>
 
         {/* ================= THEME ================= */}
-        <div className="bg-gray-800/50 rounded-xl p-6 border border-gray-700">
+        <div className="glass-card rounded-2xl p-6 border border-border">
           <div className="flex items-center gap-3 mb-5">
-            <div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-600 text-white">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-yellow-500/10 text-yellow-400">
               <Palette className="h-5 w-5" />
             </div>
             <div>
               <h2 className="text-base font-semibold text-white">Theme & Appearance</h2>
-              <p className="text-xs text-gray-400">Customize your dashboard look</p>
+              <p className="text-xs text-muted-foreground">Customize your dashboard look</p>
             </div>
           </div>
 
@@ -669,8 +690,7 @@ function SettingsPage() {
   );
 }
 
-// ================= COMPONENTS =================
-
+// ================= TOGGLE COMPONENT =================
 function Toggle({ 
   label, 
   checked = false,
@@ -691,7 +711,7 @@ function Toggle({
   };
 
   return (
-    <label className="flex cursor-pointer items-center justify-between rounded-lg border border-gray-700 bg-gray-900/30 p-4 transition hover:bg-gray-800/50">
+    <label className="flex cursor-pointer items-center justify-between rounded-xl border border-border bg-card/30 p-4 transition hover:bg-card/50">
       <span className="text-sm text-white">{label}</span>
       <div className="relative" onClick={handleToggle}>
         <input 
@@ -700,7 +720,7 @@ function Toggle({
           readOnly
           className="peer sr-only" 
         />
-        <div className="h-6 w-11 rounded-full bg-gray-700 transition peer-checked:bg-blue-600">
+        <div className="h-6 w-11 rounded-full bg-muted transition peer-checked:bg-primary">
           <div className={`absolute top-1 h-4 w-4 rounded-full bg-white transition ${isChecked ? 'translate-x-5' : 'translate-x-0'}`} />
         </div>
       </div>
@@ -708,6 +728,7 @@ function Toggle({
   );
 }
 
+// ================= THEME OPTION =================
 function ThemeOption({ 
   label, 
   icon, 
@@ -724,18 +745,18 @@ function ThemeOption({
       onClick={onClick}
       className={`flex flex-col items-center gap-2 rounded-xl border p-4 transition ${
         isActive 
-          ? "border-blue-500 bg-blue-500/10" 
-          : "border-gray-700 hover:border-gray-500"
+          ? "border-primary bg-primary/10" 
+          : "border-border hover:border-muted-foreground"
       }`}
     >
-      <div className={`text-2xl ${isActive ? 'text-blue-400' : 'text-gray-500'}`}>
+      <div className={`text-2xl ${isActive ? 'text-primary' : 'text-muted-foreground'}`}>
         {icon}
       </div>
-      <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-gray-400'}`}>
+      <span className={`text-sm font-medium ${isActive ? 'text-white' : 'text-muted-foreground'}`}>
         {label}
       </span>
       {isActive && (
-        <div className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" />
+        <div className="mt-1 h-1.5 w-1.5 rounded-full bg-primary" />
       )}
     </button>
   );
