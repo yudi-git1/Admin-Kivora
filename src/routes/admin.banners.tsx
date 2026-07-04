@@ -1,5 +1,5 @@
 // ============================================
-// FILE: routes/admin.banners.tsx - DENGAN TAMBAH + HAPUS
+// FILE: routes/admin.banners.tsx - DENGAN TAMBAH + HAPUSss
 // ============================================
 
 import { createFileRoute } from "@tanstack/react-router";
@@ -13,7 +13,7 @@ import {
   createBanner,
   type Banner 
 } from "@/lib/banners";
-import { ImageUpload } from "@/components/ImageUpload";
+import { ImageUpload } from "@/components/imageUpload";
 import { ActionModal } from "@/components/action-modal";
 import { 
   Save, 

@@ -1,5 +1,5 @@
 // ============================================
-// FILE: lib/banners.ts - ADMIN (FULL CRUD)
+// FILE: lib/banners.ts - ADMIN (FULL CRUDdd)
 // ============================================
 
 import { supabase } from "./supabase";
