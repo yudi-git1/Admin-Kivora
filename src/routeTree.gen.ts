@@ -17,7 +17,10 @@ import { Route as AdminSettingRouteImport } from './routes/admin.setting'
 import { Route as AdminReportsRouteImport } from './routes/admin.reports'
 import { Route as AdminOrdersRouteImport } from './routes/admin.orders'
 import { Route as AdminCustomersRouteImport } from './routes/admin.customers'
+<<<<<<< HEAD
 import { Route as AdminBannersRouteImport } from './routes/admin.banners'
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 import { Route as AdminAddRouteImport } from './routes/admin.add'
 import { Route as AdminEditIdRouteImport } from './routes/admin.edit.$id'
 
@@ -61,11 +64,14 @@ const AdminCustomersRoute = AdminCustomersRouteImport.update({
   path: '/customers',
   getParentRoute: () => AdminRoute,
 } as any)
+<<<<<<< HEAD
 const AdminBannersRoute = AdminBannersRouteImport.update({
   id: '/banners',
   path: '/banners',
   getParentRoute: () => AdminRoute,
 } as any)
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 const AdminAddRoute = AdminAddRouteImport.update({
   id: '/add',
   path: '/add',
@@ -81,7 +87,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/add': typeof AdminAddRoute
+<<<<<<< HEAD
   '/admin/banners': typeof AdminBannersRoute
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -93,7 +102,10 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/add': typeof AdminAddRoute
+<<<<<<< HEAD
   '/admin/banners': typeof AdminBannersRoute
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -107,7 +119,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/add': typeof AdminAddRoute
+<<<<<<< HEAD
   '/admin/banners': typeof AdminBannersRoute
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   '/admin/customers': typeof AdminCustomersRoute
   '/admin/orders': typeof AdminOrdersRoute
   '/admin/reports': typeof AdminReportsRoute
@@ -122,7 +137,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/add'
+<<<<<<< HEAD
     | '/admin/banners'
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/reports'
@@ -134,7 +152,10 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/add'
+<<<<<<< HEAD
     | '/admin/banners'
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/reports'
@@ -147,7 +168,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/add'
+<<<<<<< HEAD
     | '/admin/banners'
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
     | '/admin/customers'
     | '/admin/orders'
     | '/admin/reports'
@@ -220,6 +244,7 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCustomersRouteImport
       parentRoute: typeof AdminRoute
     }
+<<<<<<< HEAD
     '/admin/banners': {
       id: '/admin/banners'
       path: '/banners'
@@ -227,6 +252,8 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminBannersRouteImport
       parentRoute: typeof AdminRoute
     }
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
     '/admin/add': {
       id: '/admin/add'
       path: '/add'
@@ -246,7 +273,10 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminAddRoute: typeof AdminAddRoute
+<<<<<<< HEAD
   AdminBannersRoute: typeof AdminBannersRoute
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   AdminCustomersRoute: typeof AdminCustomersRoute
   AdminOrdersRoute: typeof AdminOrdersRoute
   AdminReportsRoute: typeof AdminReportsRoute
@@ -258,7 +288,10 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAddRoute: AdminAddRoute,
+<<<<<<< HEAD
   AdminBannersRoute: AdminBannersRoute,
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   AdminCustomersRoute: AdminCustomersRoute,
   AdminOrdersRoute: AdminOrdersRoute,
   AdminReportsRoute: AdminReportsRoute,

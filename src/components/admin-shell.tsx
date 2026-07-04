@@ -1,6 +1,10 @@
 // ============================================
 // FILE: components/admin-shell.tsx - FULL SCRIPT
+<<<<<<< HEAD
 // DENGAN NOTIFIKASI REALTIME + PP & NAMA DARI SETTINGS + MENU BANNER AKTIF
+=======
+// DENGAN NOTIFIKASI REALTIME + PP & NAMA DARI SETTINGS
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 // ============================================
 
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
@@ -9,7 +13,10 @@ import {
   LayoutDashboard,
   Package,
   PlusSquare,
+<<<<<<< HEAD
   Image,
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   ShoppingBag,
   Users,
   BarChart3,
@@ -26,12 +33,18 @@ import { supabase } from "@/lib/supabase";
 import { ActionModal } from "@/components/action-modal";
 import { NotificationBell } from "@/components/NotificationBell";
 
+<<<<<<< HEAD
 // ================= NAVIGATION ITEMS =================
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 const NAV = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/stock", label: "Stock Akun", icon: Package },
   { to: "/admin/add", label: "Tambah Akun", icon: PlusSquare },
+<<<<<<< HEAD
   { to: "/admin/banners", label: "Banner", icon: Image }, // ← MENU BANNER AKTIF
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   { to: "/admin/orders", label: "Pesanan", icon: ShoppingBag },
   { to: "/admin/customers", label: "Customer", icon: Users },
   { to: "/admin/reports", label: "Laporan", icon: BarChart3 },

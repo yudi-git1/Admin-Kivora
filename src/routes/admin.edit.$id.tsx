@@ -1,5 +1,9 @@
 // ============================================
+<<<<<<< HEAD
 // FILE: routes/admin.edit.$id.tsx - SUPPORT FF + MLBB (FIXED)
+=======
+// FILE: admin.edit.$id.tsx - BACKGROUND SOLID
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 // ============================================
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -9,6 +13,7 @@ import { ActionModal } from "@/components/action-modal";
 import {
   Save,
   User,
+<<<<<<< HEAD
   ImageIcon,
   ArrowLeft,
   Flame,
@@ -17,12 +22,26 @@ import {
   Swords,
   Sparkles,
   Eye,
+=======
+  Sword,
+  ImageIcon,
+  Tag,
+  Hash,
+  Sparkles,
+  Layers,
+  FileText,
+  ArrowLeft,
+  Eye,
+  Shield,
+  X,
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/edit/$id")({
   component: EditPage,
 });
 
+<<<<<<< HEAD
 // ================= RANK DATA =================
 const FF_RANKS = [
   "Bronze",
@@ -38,6 +57,10 @@ const FF_RANKS = [
 ];
 
 const MLBB_RANKS = [
+=======
+// ================= RANK LENGKAP =================
+const RANKS = [
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   "Warrior",
   "Elite",
   "Master",
@@ -50,6 +73,7 @@ const MLBB_RANKS = [
   "Mythic Immortal",
 ];
 
+<<<<<<< HEAD
 const LOGIN_METHODS = ["Google", "Facebook", "VK", "Apple", "Email"];
 
 // ================= RANK COLORS GABUNGAN (TIDAK DUPLIKAT) =================
@@ -96,6 +120,19 @@ const getRankColor = (rank: string, gameType?: string) => {
     return RANK_COLORS[map[rank] || rank] || "text-foreground";
   }
   return RANK_COLORS[rank] || "text-foreground";
+=======
+const RANK_COLORS: Record<string, string> = {
+  Warrior: "text-gray-400",
+  Elite: "text-slate-300",
+  Master: "text-cyan-400",
+  Grandmaster: "text-green-400",
+  Epic: "text-red-400",
+  Legend: "text-orange-400",
+  Mythic: "text-purple-400",
+  "Mythic Honor": "text-purple-300",
+  "Mythic Glory": "text-yellow-400",
+  "Mythic Immortal": "text-amber-400",
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 };
 
 function EditPage() {
@@ -104,7 +141,10 @@ function EditPage() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+<<<<<<< HEAD
   const [gameType, setGameType] = useState<"Free Fire" | "Mobile Legends">("Free Fire");
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
   const [modal, setModal] = useState({
     open: false,
     type: "success" as "success" | "error" | "warning",
@@ -116,6 +156,7 @@ function EditPage() {
     name: "",
     code: "",
     price: "",
+<<<<<<< HEAD
     // FF Fields
     level: "",
     rank_br: "Bronze",
@@ -130,6 +171,11 @@ function EditPage() {
     hero_count: "",
     skin_count: "",
     // Common
+=======
+    rank: "",
+    hero_count: "",
+    skin_count: "",
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
     status: "Available",
     image: "",
     description: "",
@@ -146,6 +192,7 @@ function EditPage() {
 
       if (error) {
         alert("Data tidak ditemukan");
+<<<<<<< HEAD
         navigate({ to: "/admin/stock" });
         return;
       }
@@ -154,10 +201,19 @@ function EditPage() {
 
       setGameType(isFF ? "Free Fire" : "Mobile Legends");
 
+=======
+        navigate({
+          to: "/admin/stock",
+        });
+        return;
+      }
+
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
       setForm({
         name: data.name ?? "",
         code: data.code ?? "",
         price: String(data.price ?? ""),
+<<<<<<< HEAD
         // FF Fields
         level: String(data.level ?? 0),
         rank_br: data.rank_br ?? "Bronze",
@@ -172,6 +228,11 @@ function EditPage() {
         hero_count: String(data.hero_count ?? 0),
         skin_count: String(data.skin_count ?? 0),
         // Common
+=======
+        rank: data.rank ?? "",
+        hero_count: String(data.hero_count ?? 0),
+        skin_count: String(data.skin_count ?? 0),
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
         status: data.status ?? "Available",
         image: data.image ?? "",
         description: data.description ?? "",
@@ -181,13 +242,18 @@ function EditPage() {
     };
 
     fetchData();
+<<<<<<< HEAD
   }, [id, navigate]);
+=======
+  }, [id]);
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
 
   // ================= UPDATE DATA =================
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
 
+<<<<<<< HEAD
     const isFF = gameType === "Free Fire";
     const payload: any = {
       name: form.name,
@@ -228,6 +294,21 @@ function EditPage() {
     const { error } = await supabase
       .from("accounts")
       .update(payload)
+=======
+    const { error } = await supabase
+      .from("accounts")
+      .update({
+        name: form.name,
+        code: form.code,
+        price: Number(form.price),
+        rank: form.rank,
+        hero_count: Number(form.hero_count),
+        skin_count: Number(form.skin_count),
+        status: form.status,
+        image: form.image,
+        description: form.description,
+      })
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
       .eq("id", id);
 
     if (error) {
@@ -300,6 +381,10 @@ function EditPage() {
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* ================= LEFT COLUMN - FORM ================= */}
             <div className="lg:col-span-2 space-y-6">
+<<<<<<< HEAD
+=======
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
               <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <Shield className="h-5 w-5 text-primary" />
@@ -309,6 +394,7 @@ function EditPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<<<<<<< HEAD
                   {/* Game Type */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
@@ -345,6 +431,11 @@ function EditPage() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
                       Account Name *
+=======
+                  <div className="md:col-span-2">
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      Account Name
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     </label>
                     <input
                       className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
@@ -356,13 +447,20 @@ function EditPage() {
                           name: e.target.value,
                         })
                       }
+<<<<<<< HEAD
                       required
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+<<<<<<< HEAD
                       Account Code *
+=======
+                      Account Code
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     </label>
                     <input
                       className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
@@ -374,13 +472,20 @@ function EditPage() {
                           code: e.target.value,
                         })
                       }
+<<<<<<< HEAD
                       required
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+<<<<<<< HEAD
                       Price (IDR) *
+=======
+                      Price (IDR)
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     </label>
                     <input
                       type="number"
@@ -393,12 +498,40 @@ function EditPage() {
                           price: e.target.value,
                         })
                       }
+<<<<<<< HEAD
                       required
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     />
                   </div>
 
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+<<<<<<< HEAD
+=======
+                      Rank
+                    </label>
+                    <select
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      value={form.rank}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          rank: e.target.value,
+                        })
+                      }
+                    >
+                      {RANKS.map((rank) => (
+                        <option key={rank} value={rank}>
+                          {rank}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                       Status
                     </label>
                     <select
@@ -417,6 +550,7 @@ function EditPage() {
                     </select>
                   </div>
 
+<<<<<<< HEAD
                   {/* ================= FF FIELDS ================= */}
                   {gameType === "Free Fire" && (
                     <>
@@ -653,6 +787,39 @@ function EditPage() {
                         setForm({
                           ...form,
                           description: e.target.value,
+=======
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      Hero Count
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      placeholder="Number of heroes"
+                      value={form.hero_count}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          hero_count: e.target.value,
+                        })
+                      }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
+                      Skin Count
+                    </label>
+                    <input
+                      type="number"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      placeholder="Number of skins"
+                      value={form.skin_count}
+                      onChange={(e) =>
+                        setForm({
+                          ...form,
+                          skin_count: e.target.value,
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                         })
                       }
                     />
@@ -660,7 +827,32 @@ function EditPage() {
                 </div>
               </div>
 
+<<<<<<< HEAD
               {/* Image URL */}
+=======
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+                  <FileText className="h-5 w-5 text-primary" />
+                  <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                    Description
+                  </h2>
+                </div>
+                <textarea
+                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition min-h-[120px] resize-y"
+                  placeholder="Enter account description..."
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      description: e.target.value,
+                    })
+                  }
+                />
+              </div>
+
+              {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
               <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                   <ImageIcon className="h-5 w-5 text-primary" />
@@ -685,6 +877,10 @@ function EditPage() {
             {/* ================= RIGHT COLUMN - PREVIEW ================= */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
+<<<<<<< HEAD
+=======
+                {/* ✅ CONTAINER SOLID - HAPUS glass-card */}
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                 <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                   <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                     <Eye className="h-5 w-5 text-primary" />
@@ -713,6 +909,7 @@ function EditPage() {
 
                   <div className="space-y-3">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
+<<<<<<< HEAD
                       <span className="text-xs text-muted-foreground">Game</span>
                       <span className="text-sm font-medium flex items-center gap-1">
                         {gameType === "Free Fire" ? (
@@ -724,6 +921,8 @@ function EditPage() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
+=======
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                       <span className="text-xs text-muted-foreground">Name</span>
                       <span className="text-sm font-medium">{form.name || "-"}</span>
                     </div>
@@ -731,6 +930,7 @@ function EditPage() {
                       <span className="text-xs text-muted-foreground">Code</span>
                       <span className="text-sm font-medium">{form.code || "-"}</span>
                     </div>
+<<<<<<< HEAD
 
                     {gameType === "Free Fire" ? (
                       <>
@@ -796,6 +996,14 @@ function EditPage() {
                       </>
                     )}
 
+=======
+                    <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                      <span className="text-xs text-muted-foreground">Rank</span>
+                      <span className={`text-sm font-medium ${RANK_COLORS[form.rank] || "text-foreground"}`}>
+                        {form.rank || "-"}
+                      </span>
+                    </div>
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Status</span>
                       <span
@@ -810,6 +1018,23 @@ function EditPage() {
                         {form.status}
                       </span>
                     </div>
+<<<<<<< HEAD
+=======
+                    <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                      <span className="text-xs text-muted-foreground">Heroes</span>
+                      <span className="text-sm font-medium flex items-center gap-1">
+                        <Sword className="h-3 w-3 text-primary" />
+                        {form.hero_count || "0"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pb-2 border-b border-border/50">
+                      <span className="text-xs text-muted-foreground">Skins</span>
+                      <span className="text-sm font-medium flex items-center gap-1">
+                        <Sparkles className="h-3 w-3 text-primary" />
+                        {form.skin_count || "0"}
+                      </span>
+                    </div>
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
                     <div className="flex justify-between items-center pt-2">
                       <span className="text-xs text-muted-foreground">Price</span>
                       <span className="text-lg font-bold gradient-text">
@@ -817,6 +1042,7 @@ function EditPage() {
                       </span>
                     </div>
                   </div>
+<<<<<<< HEAD
 
                   {form.description && (
                     <div className="mt-4 pt-4 border-t border-border">
@@ -827,6 +1053,18 @@ function EditPage() {
                     </div>
                   )}
                 </div>
+=======
+                </div>
+
+                {form.description && (
+                  <div className="mt-4 bg-card rounded-2xl p-4 border border-border shadow-soft">
+                    <p className="text-xs text-muted-foreground mb-1">Description</p>
+                    <p className="text-sm text-foreground line-clamp-3">
+                      {form.description}
+                    </p>
+                  </div>
+                )}
+>>>>>>> 0722163535932dbfc2c15b922fca6706bdebcad3
               </div>
             </div>
           </div>
