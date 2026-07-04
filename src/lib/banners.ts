@@ -1,5 +1,5 @@
 // ============================================
-// FILE: lib/banners.ts
+// FILE: lib/banners.ts - ADMIN (FULL CRUD)
 // ============================================
 
 import { supabase } from "./supabase";
@@ -155,4 +155,53 @@ export async function updateBannerWithImage(
 // ================= TOGGLE ACTIVE =================
 export async function toggleBannerActive(id: string, isActive: boolean): Promise<Banner | null> {
   return updateBanner(id, { is_active: isActive });
+}
+
+// ================= CREATE BANNER (TAMBAH BARU) =================
+export async function createBanner(data: Omit<Banner, 'id' | 'created_at' | 'updated_at'>): Promise<Banner | null> {
+  try {
+    const { data: banner, error } = await supabase
+      .from("banners")
+      .insert({
+        ...data,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("Error creating banner:", error);
+      return null;
+    }
+    return banner;
+  } catch (error) {
+    console.error("Error in createBanner:", error);
+    return null;
+  }
+}
+
+// ================= DELETE BANNER =================
+export async function deleteBanner(id: string): Promise<boolean> {
+  try {
+    // Ambil data banner dulu buat hapus gambar
+    const banner = await getBannerById(id);
+    if (banner?.image_url) {
+      await deleteBannerImage(banner.image_url);
+    }
+
+    const { error } = await supabase
+      .from("banners")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      console.error("Error deleting banner:", error);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error("Error in deleteBanner:", error);
+    return false;
+  }
 }
