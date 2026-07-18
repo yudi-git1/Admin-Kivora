@@ -1,5 +1,5 @@
 // ============================================
-// FILE: routes/admin.edit.$id.tsx - SUPPORT FF + MLBB (FIXED)
+// FILE: routes/admin.edit.$id.tsx - MULTIPLE IMAGES + SWIPE
 // ============================================
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -17,6 +17,8 @@ import {
   Swords,
   Sparkles,
   Eye,
+  X,
+  Upload,
 } from "lucide-react";
 
 export const Route = createFileRoute("/admin/edit/$id")({
@@ -52,9 +54,7 @@ const MLBB_RANKS = [
 
 const LOGIN_METHODS = ["Google", "Facebook", "VK", "Apple", "Email"];
 
-// ================= RANK COLORS GABUNGAN (TIDAK DUPLIKAT) =================
 const RANK_COLORS: Record<string, string> = {
-  // FF
   Bronze: "text-amber-600",
   Silver: "text-gray-400",
   Gold: "text-yellow-400",
@@ -65,7 +65,6 @@ const RANK_COLORS: Record<string, string> = {
   Master: "text-red-400",
   "Elite Master": "text-red-300",
   Grandmaster: "text-orange-400",
-  // MLBB (pake prefix biar gak clash)
   mlbb_Warrior: "text-gray-400",
   mlbb_Elite: "text-slate-300",
   mlbb_Master: "text-cyan-400",
@@ -78,7 +77,6 @@ const RANK_COLORS: Record<string, string> = {
   mlbb_MythicImmortal: "text-amber-400",
 };
 
-// ================= GET RANK COLOR =================
 const getRankColor = (rank: string, gameType?: string) => {
   if (gameType === "Mobile Legends") {
     const map: Record<string, string> = {
@@ -105,6 +103,9 @@ function EditPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [gameType, setGameType] = useState<"Free Fire" | "Mobile Legends">("Free Fire");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [existingImages, setExistingImages] = useState<string[]>([]);
   const [modal, setModal] = useState({
     open: false,
     type: "success" as "success" | "error" | "warning",
@@ -116,7 +117,6 @@ function EditPage() {
     name: "",
     code: "",
     price: "",
-    // FF Fields
     level: "",
     rank_br: "Bronze",
     rank_cs: "Bronze",
@@ -125,13 +125,10 @@ function EditPage() {
     emote: "",
     elite_pass: "",
     login_method: "Google",
-    // MLBB Fields
     rank: "Epic",
     hero_count: "",
     skin_count: "",
-    // Common
     status: "Available",
-    image: "",
     description: "",
   });
 
@@ -151,14 +148,12 @@ function EditPage() {
       }
 
       const isFF = data.game_type === "Free Fire";
-
       setGameType(isFF ? "Free Fire" : "Mobile Legends");
 
       setForm({
         name: data.name ?? "",
         code: data.code ?? "",
         price: String(data.price ?? ""),
-        // FF Fields
         level: String(data.level ?? 0),
         rank_br: data.rank_br ?? "Bronze",
         rank_cs: data.rank_cs ?? "Bronze",
@@ -167,15 +162,15 @@ function EditPage() {
         emote: String(data.emote ?? 0),
         elite_pass: String(data.elite_pass ?? 0),
         login_method: data.login_method ?? "Google",
-        // MLBB Fields
         rank: data.rank ?? "Epic",
         hero_count: String(data.hero_count ?? 0),
         skin_count: String(data.skin_count ?? 0),
-        // Common
         status: data.status ?? "Available",
-        image: data.image ?? "",
         description: data.description ?? "",
       });
+
+      // Set existing images
+      setExistingImages(data.images || (data.image ? [data.image] : []));
 
       setLoading(false);
     };
@@ -183,10 +178,72 @@ function EditPage() {
     fetchData();
   }, [id, navigate]);
 
+  // ================= UPLOAD MULTIPLE IMAGES =================
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of files) {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
+        .from("account-images")
+        .upload(fileName, file);
+      if (error) {
+        console.error("Upload error:", error);
+        continue;
+      }
+      const { data } = supabase.storage
+        .from("account-images")
+        .getPublicUrl(fileName);
+      urls.push(data.publicUrl);
+    }
+    return urls;
+  };
+
+  // ================= HANDLE IMAGES CHANGE =================
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setImageFiles((prev) => [...prev, ...fileArray]);
+
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeNewImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = async (index: number) => {
+    const urlToRemove = existingImages[index];
+    setExistingImages((prev) => prev.filter((_, i) => i !== index));
+
+    // Hapus dari storage
+    const path = urlToRemove.split("/account-images/")[1];
+    if (path) {
+      await supabase.storage.from("account-images").remove([path]);
+    }
+  };
+
   // ================= UPDATE DATA =================
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     setSaving(true);
+
+    // Upload new images
+    let newImageUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      newImageUrls = await uploadImages(imageFiles);
+    }
+
+    // Gabungkan existing images + new images
+    const allImages = [...existingImages, ...newImageUrls];
 
     const isFF = gameType === "Free Fire";
     const payload: any = {
@@ -195,7 +252,8 @@ function EditPage() {
       price: Number(form.price),
       game_type: gameType,
       status: form.status,
-      image: form.image,
+      image: allImages[0] || null,
+      images: allImages,
       description: form.description,
     };
 
@@ -267,7 +325,7 @@ function EditPage() {
     <>
       <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
         <div className="max-w-7xl mx-auto">
-          {/* ================= HEADER ================= */}
+          {/* HEADER */}
           <div className="flex items-center justify-between mb-8">
             <div className="flex items-center gap-4">
               <button
@@ -296,9 +354,9 @@ function EditPage() {
             </button>
           </div>
 
-          {/* ================= MAIN FORM ================= */}
+          {/* MAIN FORM */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* ================= LEFT COLUMN - FORM ================= */}
+            {/* LEFT COLUMN - FORM */}
             <div className="lg:col-span-2 space-y-6">
               <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-6 pb-4 border-b border-border">
@@ -347,15 +405,10 @@ function EditPage() {
                       Account Name *
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Enter account name"
                       value={form.name}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          name: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setForm({ ...form, name: e.target.value })}
                       required
                     />
                   </div>
@@ -365,15 +418,10 @@ function EditPage() {
                       Account Code *
                     </label>
                     <input
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Enter account code"
                       value={form.code}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          code: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setForm({ ...form, code: e.target.value })}
                       required
                     />
                   </div>
@@ -384,15 +432,10 @@ function EditPage() {
                     </label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Enter price"
                       value={form.price}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          price: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setForm({ ...form, price: e.target.value })}
                       required
                     />
                   </div>
@@ -402,14 +445,9 @@ function EditPage() {
                       Status
                     </label>
                     <select
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       value={form.status}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          status: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setForm({ ...form, status: e.target.value })}
                     >
                       <option value="Available">Available</option>
                       <option value="Reserved">Reserved</option>
@@ -417,272 +455,204 @@ function EditPage() {
                     </select>
                   </div>
 
-                  {/* ================= FF FIELDS ================= */}
+                  {/* FF FIELDS */}
                   {gameType === "Free Fire" && (
                     <>
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Level
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Level</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Level"
                           value={form.level}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              level: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, level: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Rank BR
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank BR</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank_br}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              rank_br: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, rank_br: e.target.value })}
                         >
-                          {FF_RANKS.map((rank) => (
-                            <option key={rank} value={rank}>
-                              {rank}
-                            </option>
-                          ))}
+                          {FF_RANKS.map((r) => (<option key={r} value={r}>{r}</option>))}
                         </select>
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Rank CS
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank CS</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank_cs}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              rank_cs: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, rank_cs: e.target.value })}
                         >
-                          {FF_RANKS.map((rank) => (
-                            <option key={rank} value={rank}>
-                              {rank}
-                            </option>
-                          ))}
+                          {FF_RANKS.map((r) => (<option key={r} value={r}>{r}</option>))}
                         </select>
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Evo Gun
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Evo Gun</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Evo Gun"
                           value={form.evo_gun}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              evo_gun: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, evo_gun: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Bundle
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Bundle</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Bundle"
                           value={form.bundle}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              bundle: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, bundle: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Emote
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Emote</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Emote"
                           value={form.emote}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              emote: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, emote: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Elite Pass
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Elite Pass</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Elite Pass"
                           value={form.elite_pass}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              elite_pass: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, elite_pass: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Login Method
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Login Method</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.login_method}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              login_method: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, login_method: e.target.value })}
                         >
-                          {LOGIN_METHODS.map((method) => (
-                            <option key={method} value={method}>
-                              {method}
-                            </option>
-                          ))}
+                          {LOGIN_METHODS.map((m) => (<option key={m} value={m}>{m}</option>))}
                         </select>
                       </div>
                     </>
                   )}
 
-                  {/* ================= MLBB FIELDS ================= */}
+                  {/* MLBB FIELDS */}
                   {gameType === "Mobile Legends" && (
                     <>
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Rank
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              rank: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, rank: e.target.value })}
                         >
-                          {MLBB_RANKS.map((rank) => (
-                            <option key={rank} value={rank}>
-                              {rank}
-                            </option>
-                          ))}
+                          {MLBB_RANKS.map((r) => (<option key={r} value={r}>{r}</option>))}
                         </select>
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Hero Count
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Hero Count</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Number of heroes"
                           value={form.hero_count}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              hero_count: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, hero_count: e.target.value })}
                         />
                       </div>
-
                       <div>
-                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                          Skin Count
-                        </label>
+                        <label className="block text-xs font-medium text-muted-foreground mb-1.5">Skin Count</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Number of skins"
                           value={form.skin_count}
-                          onChange={(e) =>
-                            setForm({
-                              ...form,
-                              skin_count: e.target.value,
-                            })
-                          }
+                          onChange={(e) => setForm({ ...form, skin_count: e.target.value })}
                         />
                       </div>
                     </>
                   )}
 
                   <div className="md:col-span-2">
-                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">
-                      Description
-                    </label>
+                    <label className="block text-xs font-medium text-muted-foreground mb-1.5">Description</label>
                     <textarea
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition min-h-[120px] resize-y"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition min-h-[120px] resize-y"
                       placeholder="Enter account description..."
                       value={form.description}
-                      onChange={(e) =>
-                        setForm({
-                          ...form,
-                          description: e.target.value,
-                        })
-                      }
+                      onChange={(e) => setForm({ ...form, description: e.target.value })}
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Image URL */}
+              {/* MULTIPLE IMAGES SECTION */}
               <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
                 <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
                   <ImageIcon className="h-5 w-5 text-primary" />
                   <h2 className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-                    Image URL
+                    Gambar Akun (Bisa lebih dari 1)
                   </h2>
                 </div>
-                <input
-                  className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
-                  placeholder="Enter image URL"
-                  value={form.image}
-                  onChange={(e) =>
-                    setForm({
-                      ...form,
-                      image: e.target.value,
-                    })
-                  }
-                />
+
+                {/* Existing Images */}
+                {existingImages.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {existingImages.map((url, index) => (
+                      <div key={`existing-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                        <img src={url} className="h-full w-full object-cover" alt={`Gambar ${index + 1}`} />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-1 right-1 bg-destructive p-1 rounded-full hover:bg-destructive/80 transition"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* New Images Preview */}
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-4 gap-2 mb-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={`new-${index}`} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                        <img src={preview} className="h-full w-full object-cover" alt={`Preview ${index + 1}`} />
+                        <button
+                          type="button"
+                          onClick={() => removeNewImage(index)}
+                          className="absolute top-1 right-1 bg-destructive p-1 rounded-full hover:bg-destructive/80 transition"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Area */}
+                <div className="relative border-2 border-dashed border-border rounded-xl p-4 text-center hover:border-primary/50 transition cursor-pointer">
+                  <Upload className="h-8 w-8 mx-auto text-muted-foreground/50" />
+                  <p className="mt-1 text-sm text-muted-foreground">Tambah gambar</p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImagesChange}
+                    multiple
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Total: {existingImages.length + imageFiles.length} gambar
+                </p>
               </div>
             </div>
 
-            {/* ================= RIGHT COLUMN - PREVIEW ================= */}
+            {/* RIGHT COLUMN - PREVIEW */}
             <div className="lg:col-span-1">
               <div className="sticky top-8">
                 <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
@@ -694,9 +664,9 @@ function EditPage() {
                   </div>
 
                   <div className="mb-4">
-                    {form.image ? (
+                    {existingImages.length > 0 || imagePreviews.length > 0 ? (
                       <img
-                        src={form.image}
+                        src={existingImages[0] || imagePreviews[0]}
                         alt={form.name}
                         className="w-full aspect-video object-cover rounded-xl border border-border"
                         onError={(e) => {
@@ -714,14 +684,7 @@ function EditPage() {
                   <div className="space-y-3">
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Game</span>
-                      <span className="text-sm font-medium flex items-center gap-1">
-                        {gameType === "Free Fire" ? (
-                          <Flame className="h-3 w-3 text-orange-400" />
-                        ) : (
-                          <Crown className="h-3 w-3 text-purple-400" />
-                        )}
-                        {gameType}
-                      </span>
+                      <span className="text-sm font-medium">{gameType}</span>
                     </div>
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Name</span>
@@ -731,82 +694,15 @@ function EditPage() {
                       <span className="text-xs text-muted-foreground">Code</span>
                       <span className="text-sm font-medium">{form.code || "-"}</span>
                     </div>
-
-                    {gameType === "Free Fire" ? (
-                      <>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Level</span>
-                          <span className="text-sm font-medium">{form.level || "0"}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Rank BR</span>
-                          <span className={`text-sm font-medium ${getRankColor(form.rank_br, "Free Fire")}`}>
-                            {form.rank_br}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Rank CS</span>
-                          <span className={`text-sm font-medium ${getRankColor(form.rank_cs, "Free Fire")}`}>
-                            {form.rank_cs}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Evo Gun</span>
-                          <span className="text-sm font-medium">{form.evo_gun || "0"}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Bundle</span>
-                          <span className="text-sm font-medium">{form.bundle || "0"}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Emote</span>
-                          <span className="text-sm font-medium">{form.emote || "0"}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Elite Pass</span>
-                          <span className="text-sm font-medium">{form.elite_pass || "0"}</span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Login</span>
-                          <span className="text-sm font-medium">{form.login_method}</span>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Rank</span>
-                          <span className={`text-sm font-medium ${getRankColor(form.rank, "Mobile Legends")}`}>
-                            {form.rank}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Heroes</span>
-                          <span className="text-sm font-medium flex items-center gap-1">
-                            <Swords className="h-3 w-3 text-primary" />
-                            {form.hero_count || "0"}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center pb-2 border-b border-border/50">
-                          <span className="text-xs text-muted-foreground">Skins</span>
-                          <span className="text-sm font-medium flex items-center gap-1">
-                            <Sparkles className="h-3 w-3 text-primary" />
-                            {form.skin_count || "0"}
-                          </span>
-                        </div>
-                      </>
-                    )}
-
                     <div className="flex justify-between items-center pb-2 border-b border-border/50">
                       <span className="text-xs text-muted-foreground">Status</span>
-                      <span
-                        className={`text-xs px-3 py-1 rounded-full border ${
-                          form.status === "Available"
-                            ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
-                            : form.status === "Reserved"
-                            ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/10"
-                            : "border-red-500/30 text-red-400 bg-red-500/10"
-                        }`}
-                      >
+                      <span className={`text-xs px-3 py-1 rounded-full border ${
+                        form.status === "Available"
+                          ? "border-emerald-500/30 text-emerald-400 bg-emerald-500/10"
+                          : form.status === "Reserved"
+                          ? "border-yellow-500/30 text-yellow-400 bg-yellow-500/10"
+                          : "border-red-500/30 text-red-400 bg-red-500/10"
+                      }`}>
                         {form.status}
                       </span>
                     </div>
@@ -817,15 +713,6 @@ function EditPage() {
                       </span>
                     </div>
                   </div>
-
-                  {form.description && (
-                    <div className="mt-4 pt-4 border-t border-border">
-                      <p className="text-xs text-muted-foreground mb-1">Description</p>
-                      <p className="text-sm text-foreground line-clamp-3">
-                        {form.description}
-                      </p>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
@@ -833,27 +720,16 @@ function EditPage() {
         </div>
       </div>
 
-      {/* ================= ACTION MODAL ================= */}
       <ActionModal
         open={modal.open}
         type={modal.type}
         title={modal.title}
         message={modal.message}
-        onClose={() =>
-          setModal({
-            ...modal,
-            open: false,
-          })
-        }
+        onClose={() => setModal({ ...modal, open: false })}
         onConfirm={() => {
-          setModal({
-            ...modal,
-            open: false,
-          });
+          setModal({ ...modal, open: false });
           if (modal.type === "success") {
-            navigate({
-              to: "/admin/stock",
-            });
+            navigate({ to: "/admin/stock" });
           }
         }}
         confirmText={modal.type === "success" ? "OK" : "Tutup"}
