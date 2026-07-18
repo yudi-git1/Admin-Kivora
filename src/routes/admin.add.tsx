@@ -14,8 +14,6 @@ import {
   ArrowLeft,
   Flame,
   Crown,
-  Swords,
-  Sparkles,
 } from "lucide-react";
 import { ActionModal } from "@/components/action-modal";
 
@@ -36,7 +34,6 @@ const MLBB_RANKS = [
 
 const LOGIN_METHODS = ["Google", "Facebook", "VK", "Apple", "Email"];
 
-// ================= COMPONENT =================
 function AddAccountPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -107,7 +104,7 @@ function AddAccountPage() {
     return urls;
   };
 
-  // ================= HANDLE IMAGES CHANGE =================
+  // ================= HANDLE MULTIPLE IMAGES CHANGE =================
   const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
@@ -122,15 +119,17 @@ function AddAccountPage() {
         };
         reader.readAsDataURL(file);
       });
-      // Reset previews
+      // Reset previews biar ga double
       setImagePreviews([]);
-      fileArray.forEach((file) => {
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          setImagePreviews((prev) => [...prev, reader.result as string]);
-        };
-        reader.readAsDataURL(file);
-      });
+      setTimeout(() => {
+        fileArray.forEach((file) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            setImagePreviews((prev) => [...prev, reader.result as string]);
+          };
+          reader.readAsDataURL(file);
+        });
+      }, 100);
     }
   };
 
@@ -144,7 +143,6 @@ function AddAccountPage() {
     e.preventDefault();
     setLoading(true);
 
-    // Validasi
     if (!form.name.trim()) {
       setModal({ open: true, type: "error", title: "Gagal!", message: "Nama akun harus diisi" });
       setLoading(false);
@@ -324,7 +322,6 @@ function AddAccountPage() {
                     </select>
                   </div>
 
-                  {/* FF FIELDS */}
                   {gameType === "Free Fire" && (
                     <>
                       <div>
@@ -410,7 +407,6 @@ function AddAccountPage() {
                     </>
                   )}
 
-                  {/* MLBB FIELDS */}
                   {gameType === "Mobile Legends" && (
                     <>
                       <div>
@@ -459,7 +455,7 @@ function AddAccountPage() {
               </div>
             </div>
 
-            {/* RIGHT COLUMN - IMAGE */}
+            {/* RIGHT COLUMN - MULTIPLE IMAGES */}
             <div className="space-y-6">
               <div className="bg-card rounded-2xl p-6 border border-border">
                 <h2 className="gradient-text font-bold flex items-center gap-2 mb-6 pb-4 border-b border-border">
@@ -485,8 +481,8 @@ function AddAccountPage() {
                   </div>
                 )}
 
-                {/* Upload Area */}
-                <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition cursor-pointer">
+                {/* Upload Area - MULTIPLE FILES */}
+                <div className="relative border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition cursor-pointer">
                   <Upload className="h-10 w-10 mx-auto text-muted-foreground/50" />
                   <p className="mt-2 text-sm text-muted-foreground">
                     Klik untuk upload multiple gambar
