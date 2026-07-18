@@ -1,5 +1,5 @@
 // ============================================
-// FILE: routes/admin.add.tsx - SUPPORT FF + MLBB + FIXED
+// FILE: routes/admin.add.tsx - MULTIPLE IMAGES
 // ============================================
 
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
@@ -19,89 +19,30 @@ import {
 } from "lucide-react";
 import { ActionModal } from "@/components/action-modal";
 
-// ================= EXPORT ROUTE =================
 export const Route = createFileRoute("/admin/add")({
   component: AddAccountPage,
 });
 
 // ================= RANK DATA =================
 const FF_RANKS = [
-  "Bronze",
-  "Silver",
-  "Gold",
-  "Platinum",
-  "Diamond",
-  "Heroic",
-  "Elite Heroic",
-  "Master",
-  "Elite Master",
-  "Grandmaster",
+  "Bronze", "Silver", "Gold", "Platinum", "Diamond",
+  "Heroic", "Elite Heroic", "Master", "Elite Master", "Grandmaster",
 ];
 
 const MLBB_RANKS = [
-  "Warrior",
-  "Elite",
-  "Master",
-  "Grandmaster",
-  "Epic",
-  "Legend",
-  "Mythic",
-  "Mythic Honor",
-  "Mythic Glory",
-  "Mythic Immortal",
+  "Warrior", "Elite", "Master", "Grandmaster", "Epic",
+  "Legend", "Mythic", "Mythic Honor", "Mythic Glory", "Mythic Immortal",
 ];
 
 const LOGIN_METHODS = ["Google", "Facebook", "VK", "Apple", "Email"];
-
-const RANK_COLORS: Record<string, string> = {
-  Bronze: "text-amber-600",
-  Silver: "text-gray-400",
-  Gold: "text-yellow-400",
-  Platinum: "text-cyan-400",
-  Diamond: "text-blue-400",
-  Heroic: "text-purple-400",
-  "Elite Heroic": "text-purple-300",
-  Master: "text-red-400",
-  "Elite Master": "text-red-300",
-  Grandmaster: "text-orange-400",
-  mlbb_Warrior: "text-gray-400",
-  mlbb_Elite: "text-slate-300",
-  mlbb_Master: "text-cyan-400",
-  mlbb_Grandmaster: "text-green-400",
-  mlbb_Epic: "text-red-400",
-  mlbb_Legend: "text-orange-400",
-  mlbb_Mythic: "text-purple-400",
-  mlbb_MythicHonor: "text-purple-300",
-  mlbb_MythicGlory: "text-yellow-400",
-  mlbb_MythicImmortal: "text-amber-400",
-};
-
-const getRankColor = (rank: string, gameType?: string) => {
-  if (gameType === "Mobile Legends") {
-    const map: Record<string, string> = {
-      Warrior: "mlbb_Warrior",
-      Elite: "mlbb_Elite",
-      Master: "mlbb_Master",
-      Grandmaster: "mlbb_Grandmaster",
-      Epic: "mlbb_Epic",
-      Legend: "mlbb_Legend",
-      Mythic: "mlbb_Mythic",
-      "Mythic Honor": "mlbb_MythicHonor",
-      "Mythic Glory": "mlbb_MythicGlory",
-      "Mythic Immortal": "mlbb_MythicImmortal",
-    };
-    return RANK_COLORS[map[rank] || rank] || "text-foreground";
-  }
-  return RANK_COLORS[rank] || "text-foreground";
-};
 
 // ================= COMPONENT =================
 function AddAccountPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const [imageFile, setImageFile] = useState<File | null>(null);
-  const [preview, setPreview] = useState("");
   const [gameType, setGameType] = useState<"Free Fire" | "Mobile Legends">("Free Fire");
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [modal, setModal] = useState({
     open: false,
     type: "success" as "success" | "error" | "warning",
@@ -125,7 +66,6 @@ function AddAccountPage() {
     hero_count: "",
     skin_count: "",
     status: "Available",
-    image: "",
     description: "",
   });
 
@@ -147,44 +87,83 @@ function AddAccountPage() {
     }
   }, [gameType]);
 
-  const uploadImage = async () => {
-    if (!imageFile) return "";
-    const fileName = `${Date.now()}-${imageFile.name}`;
-    const { error } = await supabase.storage.from("account-images").upload(fileName, imageFile);
-    if (error) {
-      console.error("Upload error:", error);
-      return "";
+  // ================= UPLOAD MULTIPLE IMAGES =================
+  const uploadImages = async (files: File[]): Promise<string[]> => {
+    const urls: string[] = [];
+    for (const file of files) {
+      const fileName = `${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage
+        .from("account-images")
+        .upload(fileName, file);
+      if (error) {
+        console.error("Upload error:", error);
+        continue;
+      }
+      const { data } = supabase.storage
+        .from("account-images")
+        .getPublicUrl(fileName);
+      urls.push(data.publicUrl);
     }
-    const { data } = supabase.storage.from("account-images").getPublicUrl(fileName);
-    return data.publicUrl;
+    return urls;
   };
 
+  // ================= HANDLE IMAGES CHANGE =================
+  const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const fileArray = Array.from(files);
+      setImageFiles(fileArray);
+      
+      const previews: string[] = [];
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+      // Reset previews
+      setImagePreviews([]);
+      fileArray.forEach((file) => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setImagePreviews((prev) => [...prev, reader.result as string]);
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+  };
+
+  const removeImage = (index: number) => {
+    setImageFiles((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  // ================= SUBMIT =================
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("🔍 Form submitted!");
+    setLoading(true);
 
-    // ================= VALIDASI =================
+    // Validasi
     if (!form.name.trim()) {
       setModal({ open: true, type: "error", title: "Gagal!", message: "Nama akun harus diisi" });
+      setLoading(false);
       return;
     }
     if (!form.code.trim()) {
       setModal({ open: true, type: "error", title: "Gagal!", message: "Kode akun harus diisi" });
+      setLoading(false);
       return;
     }
     if (!form.price || Number(form.price) <= 0) {
-      setModal({ open: true, type: "error", title: "Gagal!", message: "Harga harus diisi dan lebih dari 0" });
+      setModal({ open: true, type: "error", title: "Gagal!", message: "Harga harus diisi" });
+      setLoading(false);
       return;
     }
 
-    setLoading(true);
-    console.log("🔍 Loading started...");
-
-    let imageUrl = form.image;
-    if (imageFile) {
-      console.log("🔍 Uploading image...");
-      const uploadedUrl = await uploadImage();
-      if (uploadedUrl) imageUrl = uploadedUrl;
+    let imageUrls: string[] = [];
+    if (imageFiles.length > 0) {
+      imageUrls = await uploadImages(imageFiles);
     }
 
     const isFF = gameType === "Free Fire";
@@ -194,7 +173,8 @@ function AddAccountPage() {
       price: Number(form.price),
       game_type: gameType,
       status: form.status,
-      image: imageUrl,
+      image: imageUrls[0] || null,
+      images: imageUrls,
       description: form.description,
     };
 
@@ -224,41 +204,22 @@ function AddAccountPage() {
       payload.login_method = "Google";
     }
 
-    console.log("🔍 Payload:", payload);
-
     const { error } = await supabase.from("accounts").insert(payload);
 
     if (error) {
-      console.error("❌ Supabase error:", error);
       setModal({ open: true, type: "error", title: "Gagal!", message: error.message });
       setLoading(false);
       return;
     }
 
-    console.log("✅ Success!");
     setModal({ open: true, type: "success", title: "Berhasil!", message: "Akun berhasil ditambahkan" });
     setLoading(false);
-  };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setImageFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const removeImage = () => {
-    setImageFile(null);
-    setPreview("");
   };
 
   return (
     <div className="min-h-screen bg-background text-foreground p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        {/* ================= HEADER ================= */}
+        {/* HEADER */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-4">
             <button
@@ -278,18 +239,18 @@ function AddAccountPage() {
           </div>
         </div>
 
-        {/* ================= FORM ================= */}
         <form onSubmit={handleSubmit}>
           <div className="grid xl:grid-cols-2 gap-8">
-            {/* LEFT COLUMN - FORM */}
+            {/* LEFT COLUMN */}
             <div className="space-y-5">
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
+              <div className="bg-card rounded-2xl p-6 border border-border">
                 <h2 className="gradient-text font-bold flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <User size={18} />
                   INFORMASI AKUN
                 </h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Game Type */}
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Jenis Game *</label>
                     <div className="grid grid-cols-2 gap-3">
@@ -319,7 +280,7 @@ function AddAccountPage() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Nama Akun *</label>
                     <input
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Masukkan nama akun"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
@@ -330,7 +291,7 @@ function AddAccountPage() {
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Kode Akun *</label>
                     <input
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Masukkan kode akun"
                       value={form.code}
                       onChange={(e) => setForm({ ...form, code: e.target.value })}
@@ -342,7 +303,7 @@ function AddAccountPage() {
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Harga (IDR) *</label>
                     <input
                       type="number"
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       placeholder="Masukkan harga"
                       value={form.price}
                       onChange={(e) => setForm({ ...form, price: e.target.value })}
@@ -353,7 +314,7 @@ function AddAccountPage() {
                   <div>
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Status</label>
                     <select
-                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                      className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                       value={form.status}
                       onChange={(e) => setForm({ ...form, status: e.target.value })}
                     >
@@ -363,13 +324,14 @@ function AddAccountPage() {
                     </select>
                   </div>
 
+                  {/* FF FIELDS */}
                   {gameType === "Free Fire" && (
                     <>
                       <div>
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Level</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Level"
                           value={form.level}
                           onChange={(e) => setForm({ ...form, level: e.target.value })}
@@ -378,7 +340,7 @@ function AddAccountPage() {
                       <div>
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank BR</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank_br}
                           onChange={(e) => setForm({ ...form, rank_br: e.target.value })}
                         >
@@ -388,7 +350,7 @@ function AddAccountPage() {
                       <div>
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank CS</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank_cs}
                           onChange={(e) => setForm({ ...form, rank_cs: e.target.value })}
                         >
@@ -399,7 +361,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Evo Gun</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Evo Gun"
                           value={form.evo_gun}
                           onChange={(e) => setForm({ ...form, evo_gun: e.target.value })}
@@ -409,7 +371,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Bundle</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Bundle"
                           value={form.bundle}
                           onChange={(e) => setForm({ ...form, bundle: e.target.value })}
@@ -419,7 +381,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Emote</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Emote"
                           value={form.emote}
                           onChange={(e) => setForm({ ...form, emote: e.target.value })}
@@ -429,7 +391,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Elite Pass</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Elite Pass"
                           value={form.elite_pass}
                           onChange={(e) => setForm({ ...form, elite_pass: e.target.value })}
@@ -438,7 +400,7 @@ function AddAccountPage() {
                       <div>
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Login Method</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.login_method}
                           onChange={(e) => setForm({ ...form, login_method: e.target.value })}
                         >
@@ -448,12 +410,13 @@ function AddAccountPage() {
                     </>
                   )}
 
+                  {/* MLBB FIELDS */}
                   {gameType === "Mobile Legends" && (
                     <>
                       <div>
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Rank</label>
                         <select
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           value={form.rank}
                           onChange={(e) => setForm({ ...form, rank: e.target.value })}
                         >
@@ -464,7 +427,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Hero Count</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Jumlah hero"
                           value={form.hero_count}
                           onChange={(e) => setForm({ ...form, hero_count: e.target.value })}
@@ -474,7 +437,7 @@ function AddAccountPage() {
                         <label className="block text-xs font-medium text-muted-foreground mb-1.5">Skin Count</label>
                         <input
                           type="number"
-                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition"
+                          className="w-full rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition"
                           placeholder="Jumlah skin"
                           value={form.skin_count}
                           onChange={(e) => setForm({ ...form, skin_count: e.target.value })}
@@ -486,7 +449,7 @@ function AddAccountPage() {
                   <div className="md:col-span-2">
                     <label className="block text-xs font-medium text-muted-foreground mb-1.5">Deskripsi</label>
                     <textarea
-                      className="w-full h-32 rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/30 transition resize-y"
+                      className="w-full h-32 rounded-xl border border-border bg-background/50 px-4 py-3 text-foreground focus:outline-none focus:border-primary transition resize-y"
                       placeholder="Masukkan deskripsi akun..."
                       value={form.description}
                       onChange={(e) => setForm({ ...form, description: e.target.value })}
@@ -496,40 +459,64 @@ function AddAccountPage() {
               </div>
             </div>
 
-            {/* RIGHT COLUMN - IMAGE + PREVIEW */}
+            {/* RIGHT COLUMN - IMAGE */}
             <div className="space-y-6">
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
+              <div className="bg-card rounded-2xl p-6 border border-border">
                 <h2 className="gradient-text font-bold flex items-center gap-2 mb-6 pb-4 border-b border-border">
                   <ImageIcon size={18} />
-                  GAMBAR AKUN
+                  GAMBAR AKUN (Bisa lebih dari 1)
                 </h2>
-                <div className="border border-border rounded-xl p-4 relative bg-background/20">
-                  {preview ? (
-                    <>
-                      <img src={preview} className="w-full h-72 object-cover rounded-xl" alt="Preview" />
-                      <button type="button" onClick={removeImage} className="absolute top-5 right-5 bg-destructive p-2 rounded-full hover:bg-destructive/80 transition">
-                        <X size={18} />
-                      </button>
-                    </>
-                  ) : (
-                    <div className="h-72 border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center relative text-muted-foreground gap-4 bg-background/10">
-                      <Upload className="h-12 w-12 text-muted-foreground/30" />
-                      <p className="text-sm">Klik atau drag untuk upload gambar</p>
-                      <input type="file" accept="image/*" onChange={handleImageChange} className="absolute inset-0 opacity-0 cursor-pointer" />
-                    </div>
-                  )}
+                
+                {/* Image Grid Preview */}
+                {imagePreviews.length > 0 && (
+                  <div className="grid grid-cols-3 gap-2 mb-4">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative aspect-square rounded-lg overflow-hidden border border-border">
+                        <img src={preview} className="h-full w-full object-cover" alt={`Preview ${index + 1}`} />
+                        <button
+                          type="button"
+                          onClick={() => removeImage(index)}
+                          className="absolute top-1 right-1 bg-destructive p-1 rounded-full hover:bg-destructive/80 transition"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Upload Area */}
+                <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/50 transition cursor-pointer">
+                  <Upload className="h-10 w-10 mx-auto text-muted-foreground/50" />
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Klik untuk upload multiple gambar
+                  </p>
+                  <p className="text-xs text-muted-foreground/50">
+                    JPG, PNG, WEBP · Max 2MB per file
+                  </p>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImagesChange}
+                    multiple
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
                 </div>
+
+                {imageFiles.length > 0 && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    {imageFiles.length} gambar dipilih
+                  </p>
+                )}
               </div>
 
-              <div className="bg-card rounded-2xl p-6 border border-border shadow-soft">
+              {/* PREVIEW */}
+              <div className="bg-card rounded-2xl p-6 border border-border">
                 <h3 className="gradient-text font-bold mb-4 pb-4 border-b border-border">PREVIEW</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center pb-2 border-b border-border/50">
                     <span className="text-xs text-muted-foreground">Game</span>
-                    <span className="text-sm font-medium flex items-center gap-1">
-                      {gameType === "Free Fire" ? <Flame className="h-3 w-3 text-orange-400" /> : <Crown className="h-3 w-3 text-purple-400" />}
-                      {gameType}
-                    </span>
+                    <span className="text-sm font-medium">{gameType}</span>
                   </div>
                   <div className="flex justify-between items-center pb-2 border-b border-border/50">
                     <span className="text-xs text-muted-foreground">Nama Akun</span>
@@ -558,7 +545,7 @@ function AddAccountPage() {
             </div>
           </div>
 
-          {/* ================= BUTTONS ================= */}
+          {/* BUTTONS */}
           <div className="flex justify-between border-t border-border mt-8 pt-6">
             <button
               type="button"
@@ -579,7 +566,6 @@ function AddAccountPage() {
         </form>
       </div>
 
-      {/* ================= ACTION MODAL ================= */}
       <ActionModal
         open={modal.open}
         type={modal.type}
